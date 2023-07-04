@@ -3,7 +3,9 @@
 1. Ensure that you have Python3 installed on your system.
 
 2. Clone the repository to your local machine.
-git clone https://github.com/MohammadJavad-AsnaAshari/DNA-Search-With-LCS-Algorithm.git
+
+    git clone https://github.com/MohammadJavad-AsnaAshari/DNA-Search-With-LCS-Algorithm.git
+
 
 3. Navigate to the project directory.
 cd DNA Search With LCS Algorithm.
