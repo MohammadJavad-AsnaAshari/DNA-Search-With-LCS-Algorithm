@@ -11,14 +11,11 @@ def write_dna_to_file(dna, filename):
     with open(filename, 'w') as f:
         f.write(data)
 
-
-
 # Function to save generated sequences to a file
 def save_sequences_to_file(sequences, filename):
     with open(filename, 'w') as f:
         for seq in sequences:
             f.write(seq + '\n')
-
 
 # Function to generate a random DNA sequence of a given length
 def generate_dna_sequence(length):
@@ -66,49 +63,37 @@ def find_lcs(seq1, seq2):
 
     return lcs
 
-
 def find_relevant_dna(file1, file2):
     with open(file1, 'r') as f1:
-        data = json.load(f1)
-        seq1 = data["dna"]
+        seq1 = f1.read().strip()
 
+    max_lcs_length = 0
     relevant_dna = ""
-    exact_match_found = False
 
     with open(file2, 'r') as f2:
-        data = json.load(f2)
-        sequences = data["sequences"]
+        lines = f2.readlines()
 
-        for seq2 in sequences:
-            n = len(seq2)
-
-            if seq1 == seq2:
-                exact_match_found = True
-                relevant_dna = seq2
-                break
-
+        for line in lines:
+            seq2 = line.strip()
             lcs = find_lcs(seq1, seq2)
-            if len(lcs) > len(relevant_dna):
+
+            if len(lcs) > max_lcs_length:
+                max_lcs_length = len(lcs)
                 relevant_dna = seq2
 
     with open("files/output.json", 'w') as output_file:
-        for seq2 in sequences:
-            n = len(seq2)
+        for line in lines:
+            seq2 = line.strip()
             lcs = find_lcs(seq1, seq2)
             output_file.write(f"{seq1}\t{seq2}\t{lcs}\n")
 
-    if exact_match_found:
-        print("Exact match found in the second file.")
+    if relevant_dna:
+        print("Most relevant DNA sequence:", relevant_dna)
     else:
-        print("No exact match found.")
+        print("No relevant DNA sequence found.")
 
-    print("Most relevant DNA sequence:", relevant_dna)
+    return relevant_dna
 
-
-
-# Route to get the current DNA sequence
-# Route to get the current DNA sequence
-# Route to get the current DNA sequence
 @app.route('/dna', methods=['GET'])
 def get_dna():
     file_path = "files/file1.json"
@@ -120,9 +105,6 @@ def get_dna():
 
     return jsonify({'dna': dna})
 
-
-
-# Route to generate DNA sequences and save them to file2.json
 @app.route('/generate', methods=['GET'])
 def generate_sequences_route():
     num_sequences = request.args.get('num_sequences', default=10, type=int)
@@ -139,28 +121,26 @@ def generate_sequences_route():
 
     return jsonify(response)
 
-
+@app.route('/find', methods=['GET'])
 @app.route('/find', methods=['GET'])
 def find_most_relevant_dna():
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    file1 = os.path.join(script_dir, 'file1.json')
-    file2 = os.path.join(script_dir, 'file2.json')
-    result = find_relevant_dna(file1, file2)
-    response = {
-        'message': 'Most relevant DNA sequence found',
-        'relevant_dna': result
-    }
+    file1 = os.path.join(script_dir, 'files/file1.json')
+    file2 = os.path.join(script_dir, 'files/file2.json')
+    relevant_dna = find_relevant_dna(file1, file2)
+
+    if relevant_dna:
+        response = {
+            'message': 'Most relevant DNA sequence found',
+            'relevant_dna': relevant_dna
+        }
+    else:
+        response = {
+            'message': 'No relevant DNA sequence found',
+            'relevant_dna': None
+        }
+
     return jsonify(response)
-
-
-@app.route('/clear', methods=['GET'])
-def clear_cache():
-    files_to_delete = ["files/file1.json", "files/file2.json", "files/output.json"]
-    for file_path in files_to_delete:
-        if os.path.exists(file_path):
-            os.remove(file_path)
-
-    return jsonify({'message': 'Cache cleared.'})
 
 
 @app.route('/', methods=['GET'])
@@ -192,6 +172,5 @@ def route_guide():
 
     return jsonify(response)
 
-
 if __name__ == '__main__':
-    app.run(port=8080)
+    app.run(port=8085)
